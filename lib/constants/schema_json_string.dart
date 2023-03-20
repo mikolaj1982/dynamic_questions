@@ -1,0 +1,644 @@
+/// prefix 'r' indicates raw string escape sequences are not processed`
+const String schemaRawString = r'''
+      {
+        "$id": "https://api.immigration.govt.nz/td/v0.0/answers.schema.json",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "Answers",
+        "definitions": {
+          "isLivingInNZ": {
+            "properties": {
+              "livingInNZ": {
+                "const": true
+              }
+            }
+          },
+          "askWhenIsLivingInNZ": {
+            "required": [
+              "countryMostTimeInOverseas",
+              "mainReasonForTrip",
+              "intendMostlyResideNext12Months"
+            ]
+          },
+          "isNotLivingInNZ": {
+            "properties": {
+              "livingInNZ": {
+                "const": false
+              }
+            }
+          },
+          "askWhenIsNotLivingInNZ": {
+            "required": [
+              "intendStayingInNZ",
+              "countryLastLived12MonthsOrMore",
+              "stateProvinceLastLived12MonthsOrMore",
+              "postcodeLastLived12MonthsOrMore"
+            ]
+          },
+          "isNotLivingInNZAndIsNotIntendStayingInNZ": {
+            "properties": {
+              "livingInNZ": {
+                "const": false
+              },
+              "intendStayingInNZ": {
+                "const": false
+              }
+            }
+          },
+          "askWhenIsNotLivingInNZAndIsNotIntendStayingInNZ": {
+            "required": [
+              "estimatedDateOfDepartureFromNZ",
+              "reasonForComingToNZ"
+            ]
+          },
+          "isNotHoldsNZPassportVisa": {
+            "properties": {
+              "holdsNZPassportVisa": {
+                "const": false
+              }
+            }
+          },
+          "askWhenIsNotHoldsNZPassportVisa": {
+            "required": [
+              "usingForeignPassport"
+            ]
+          },
+          "isNotHoldsNZPassportVisaAndIsNotUsingForeignPassport": {
+            "properties": {
+              "holdsNZPassportVisa": {
+                "const": false
+              },
+              "usingForeignPassport": {
+                "const": false
+              }
+            }
+          },
+          "askWhenIsNotHoldsNZPassportVisaAndIsNotUsingForeignPassport": {
+            "required": [
+              "holdsAustralianPassport",
+              "hasPrisonOrDeportationHistory"
+            ]
+          },
+          "isNotHoldsNZPassportVisaAndIsNotUsingForeignPassportAndIsNotHoldsAustralianPassport": {
+            "properties": {
+              "holdsNZPassportVisa": {
+                "const": false
+              },
+              "usingForeignPassport": {
+                "const": false
+              },
+              "holdsAustralianPassport": {
+                "const": false
+              }
+            }
+          },
+          "askWhenIsNotHoldsNZPassportVisaAndIsNotUsingForeignPassportAndIsNotHoldsAustralianPassport": {
+            "required": [
+              "visaStatus",
+              "visitingForTreatment"
+            ]
+          },
+          "isBringingAnyFood": {
+            "properties": {
+              "bringingAnyFood": {
+                "const": true
+              }
+            }
+          },
+          "askWhenIsBringingAnyFood": {
+            "required": [
+              "typeOfFood"
+            ]
+          },
+          "isBringingOutdoorActivityItems": {
+            "properties": {
+              "bringingOutdoorActivityItems": {
+                "const": true
+              }
+            }
+          },
+          "askWhenIsBringingOutdoorActivityItems": {
+            "required": [
+              "typeOfOutdoorItem",
+              "outdoorItemUsedInWilderness"
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "contactEmail",
+          "contactPhone",
+          "surname",
+          "birthDate",
+          "countryOfBirth",
+          "nationality",
+          "passportNumber",
+          "arrivalDate",
+          "flightNumber",
+          "overseasPortBoard",
+          "livingInNZ",
+          "isNonStandardContactAddress",
+          "contactAddress",
+          "occupationJob",
+          "holdsNZPassportVisa",
+          "countriesBeenIn",
+          "bringingAnyFood",
+          "bringingAnimalProducts",
+          "bringingPlantProducts",
+          "bringingCulturesOrganisms",
+          "bringingEquipmentClothing",
+          "bringingOutdoorActivityItems",
+          "beenInWildernessAreas",
+          "bringingMedicine",
+          "bringingRestrictedGoods",
+          "bringingExcessAlcohol",
+          "bringingExcessTobacco",
+          "bringingExcessOverseasGoods",
+          "bringingCommercial",
+          "bringingOnBehalf",
+          "bringingExcessCash",
+          "knowsContentsOfBaggage"
+        ],
+        "properties": {
+          "declarerPreferredName": {
+            "type": "string",
+            "title": "Your preferred name",
+            "questionType": "freeText",
+            "sectionHint": "Kia ora and welcome",
+            "allowEmpty": true,
+            "minLength": 0,
+            "maxLength": 50
+          },
+          "contactEmail": {
+            "type": "string",
+            "format": "email",
+            "title": "Your email address",
+            "questionType": "freeText",
+            "sectionHint": "Kia ora and welcome",
+            "minLength": 5,
+            "maxLength": 250
+          },
+          "contactPhone": {
+            "type": "string",
+            "title": "Your contact phone number",
+            "questionType": "freeText",
+            "sectionHint": "Kia ora and welcome",
+            "minLength": 9,
+            "maxLength": 17
+          },
+          "givenNames": {
+            "type": "string",
+            "title": "Given name(s)",
+            "questionType": "freeText",
+            "sectionHint": "Your passport details",
+            "allowEmpty": true,
+            "minLength": 0,
+            "maxLength": 39,
+            "pattern": "^[a-zA-Z\\s\\-']*$"
+          },
+          "surname": {
+            "type": "string",
+            "title": "Surname/family name",
+            "questionType": "freeText",
+            "sectionHint": "Your passport details",
+            "minLength": 1,
+            "maxLength": 39,
+            "pattern": "^[a-zA-Z\\s\\-']*$"
+          },
+          "birthDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Date of birth (DD/MMM/YYYY)",
+            "questionType": "date",
+            "sectionHint": "Your passport details",
+            "validators": [
+              {
+                "type": "onOrBefore",
+                "value": "today"
+              }
+            ]
+          },
+          "countryOfBirth": {
+            "type": "string",
+            "title": "Country of birth",
+            "questionType": "singleSelect",
+            "sectionHint": "Your passport details"
+          },
+          "nationality": {
+            "type": "string",
+            "title": "Nationality",
+            "questionType": "singleSelect",
+            "sectionHint": "Your passport details"
+          },
+          "passportNumber": {
+            "type": "string",
+            "title": "Passport number",
+            "questionType": "freeText",
+            "sectionHint": "Your passport details",
+            "minLength": 3,
+            "maxLength": 9,
+            "pattern": "^[a-zA-Z0-9]*$"
+          },
+          "arrivalDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Date of arrival into New Zealand (DD/MMM/YYYY)",
+            "questionType": "date",
+            "sectionHint": "Your flight details",
+            "validators": [
+              {
+                "type": "onOrAfter",
+                "value": "today-1"
+              }
+            ]
+          },
+          "flightNumber": {
+            "type": "string",
+            "title": "Flight number",
+            "questionType": "freeText",
+            "sectionHint": "Your flight details",
+            "minLength": 3,
+            "maxLength": 10,
+            "pattern": "^((3C|[A-Z]{2,3})\\d{1,4}|[A-Z0-9]+[-]?[A-Z0-9]+)$"
+          },
+          "overseasPortBoard": {
+            "type": "string",
+            "title": "Departing from",
+            "questionType": "freeText",
+            "sectionHint": "Your flight details",
+            "minLength": 3,
+            "maxLength": 4,
+            "pattern": "^[A-Z\\d]{1,4}$"
+          },
+          "livingInNZ": {
+            "type": "boolean",
+            "title": "Do you live in New Zealand?",
+            "questionType": "yesNo",
+            "sectionHint": "About your trip"
+          },
+          "countryMostTimeInOverseas": {
+            "type": "string",
+            "title": "While overseas, which country did you spend the most time in?",
+            "questionType": "singleSelect",
+            "sectionHint": "About your trip"
+          },
+          "mainReasonForTrip": {
+            "type": "string",
+            "enum": [
+              "visitingFriendsRelatives",
+              "business",
+              "holiday",
+              "conference",
+              "education",
+              "other"
+            ],
+            "title": "What was the main reason for your trip?",
+            "questionType": "singleSelect",
+            "sectionHint": "About your trip"
+          },
+          "intendMostlyResideNext12Months": {
+            "type": "string",
+            "title": "Which country will you mostly live in for the next 12 months?",
+            "questionType": "singleSelect",
+            "sectionHint": "About your trip"
+          },
+          "intendStayingInNZ": {
+            "type": "boolean",
+            "title": "Do you intend on staying in NZ permanently?",
+            "questionType": "yesNo",
+            "sectionHint": "About your trip"
+          },
+          "estimatedDateOfDepartureFromNZ": {
+            "type": "string",
+            "format": "date",
+            "title": "How long do you intend to stay in New Zealand?",
+            "questionType": "date",
+            "sectionHint": "About your trip",
+            "validators": [
+              {
+                "type": "onOrAfter",
+                "value": "today"
+              }
+            ]
+          },
+          "reasonForComingToNZ": {
+            "type": "string",
+            "enum": [
+              "visitingFriendsRelatives",
+              "business",
+              "holiday",
+              "conference",
+              "education",
+              "other"
+            ],
+            "title": "What is your main reason for coming to New Zealand?",
+            "questionType": "singleSelect",
+            "sectionHint": "About your trip"
+          },
+          "countryLastLived12MonthsOrMore": {
+            "type": "string",
+            "title": "In which country did you last live for 12 months or more?",
+            "questionType": "singleSelect",
+            "sectionHint": "About your trip"
+          },
+          "stateProvinceLastLived12MonthsOrMore": {
+            "type": "string",
+            "title": "State, province or prefecture",
+            "questionType": "freeText",
+            "sectionHint": "About your trip",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "postcodeLastLived12MonthsOrMore": {
+            "type": "string",
+            "title": "Zip or postal code",
+            "questionType": "freeText",
+            "sectionHint": "About your trip",
+            "allowEmpty": true,
+            "minLength": 2,
+            "maxLength": 10
+          },
+          "isNonStandardContactAddress": {
+            "type": "boolean",
+            "title": "I will be mainly staying at a single residential address, or accommodation such as a hotel, motel or campground.",
+            "questionType": "yesNo",
+            "sectionHint": "About your trip"
+          },
+          "contactAddress": {
+            "type": "string",
+            "title": "Full contact or residential address in New Zealand",
+            "questionType": "freeText",
+            "sectionHint": "About your trip",
+            "minLength": 15,
+            "maxLength": 250
+          },
+          "occupationJob": {
+            "type": "string",
+            "title": "Your occupation or job",
+            "questionType": "freeText",
+            "sectionHint": "About your trip",
+            "minLength": 3,
+            "maxLength": 50
+          },
+          "holdsNZPassportVisa": {
+            "type": "boolean",
+            "title": "Do you hold a current New Zealand passport, a residence class visa or a returning resident's visa?",
+            "questionType": "yesNo",
+            "sectionHint": "Your immigration status"
+          },
+          "usingForeignPassport": {
+            "type": "boolean",
+            "title": "Are you a New Zealand citizen using a foreign passport?",
+            "questionType": "yesNo",
+            "sectionHint": "Your immigration status"
+          },
+          "holdsAustralianPassport": {
+            "type": "boolean",
+            "title": "Do you have an Australian passport or permanent resident visa that allows you to return to Australia from overseas?",
+            "questionType": "yesNo",
+            "sectionHint": "Your immigration status"
+          },
+          "visaStatus": {
+            "type": "string",
+            "enum": [
+              "holdsTemporaryVisa",
+              "applyingForVisitorVisa"
+            ],
+            "title": "Select one",
+            "questionType": "singleSelect",
+            "sectionHint": "Your immigration status"
+          },
+          "visitingForTreatment": {
+            "type": "boolean",
+            "title": "Are you coming to New Zealand for medical treatment or consultation, or to give birth?",
+            "questionType": "yesNo",
+            "sectionHint": "Your immigration status"
+          },
+          "hasPrisonOrDeportationHistory": {
+            "type": "boolean",
+            "title": "Have you ever been sentenced to 12 months or more in prison or have you ever been deported, removed, excluded or refused entry from another country?",
+            "questionType": "yesNo",
+            "sectionHint": "Your immigration status"
+          },
+          "countriesBeenIn": {
+            "type": "array",
+            "title": "List the countries you have been to outside of New Zealand in the last 30 days (including in transit).",
+            "questionType": "multiSelect",
+            "sectionHint": "Your travel history",
+            "items": {
+              "type": "string",
+              "enum": [
+                "NZL",
+                "AUS",
+                "USA",
+                "GBR",
+                "CHN"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "bringingAnyFood": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Any food:** cooked, uncooked, fresh, preserved, packaged or dried?",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "typeOfFood": {
+            "type": "array",
+            "title": "Is the food",
+            "questionType": "multiSelect",
+            "sectionHint": "Biosecurity risks",
+            "items": {
+              "type": "string",
+              "enum": [
+                "chocolate",
+                "nutbars",
+                "packagedSnackFood",
+                "otherFoods"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "bringingAnimalProducts": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Animals or animal products:** including meat, dairy products, fish, honey, bee products, egg, feathers, shells, raw wool, skins, bones or insects?",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "bringingPlantProducts": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Plants or plant products:** fruit, flowers, seeds, bulbs, wood, bark, leaves, nuts, vegetables, parts of plants, fungi, cane, bamboo or straw, including for religious offerings or medicinal use?",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "bringingCulturesOrganisms": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Animal medicines, biological cultures, organisms, soil or water?**",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "bringingEquipmentClothing": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand Equipment/clothing used with animals, plants or water, including for gardening, beekeeping, fishing, water sport or diving activities?",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "bringingOutdoorActivityItems": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand Items that have been used for outdoor activities, including any footwear, tents, camping, hunting, hiking, golf or sports equipment?",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "typeOfOutdoorItem": {
+            "type": "array",
+            "title": "Is the item",
+            "questionType": "multiSelect",
+            "sectionHint": "Biosecurity risks",
+            "items": {
+              "type": "string",
+              "enum": [
+                "footwear",
+                "tents",
+                "camping",
+                "golf",
+                "sports",
+                "hiking",
+                "hunting"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "outdoorItemUsedInWilderness": {
+            "type": "boolean",
+            "title": "Has it been used in a rural, forest or wilderness environment?",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "beenInWildernessAreas": {
+            "type": "boolean",
+            "title": "In the past 30 days (while outside of New Zealand) have you Visited any wilderness areas, had contact with animals (except domestic cats and dogs) or visited properties that farm or process animals or plants?",
+            "questionType": "yesNo",
+            "sectionHint": "Biosecurity risks"
+          },
+          "bringingMedicine": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Medicine:** over 3 months' supply, or medicine not prescribed to you?",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "bringingRestrictedGoods": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Restricted or prohibited goods:** For example, weapons, indecent publications, endangered plants or wildlife, illegal or controlled drugs?",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "bringingExcessAlcohol": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Alcohol:** more than 3 bottles of spirits (not exceeding 1.125 litres each) and 4.5 litres of wine or beer?",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "bringingExcessTobacco": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Tobacco:** more than 50 cigarettes or 50 grams of tobacco products (including a mixture of cigarettes and other tobacco products)?",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "bringingExcessOverseasGoods": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **New goods or duty free items:** Goods obtained overseas and/or purchased duty-free in New Zealand: with a total value of more than NZ$700 (including gifts)?",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "bringingCommercial": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Goods carried for business or commercial use?**",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "bringingOnBehalf": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand **Goods carried on behalf of another person?**",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "bringingExcessCash": {
+            "type": "boolean",
+            "title": "Are you bringing into New Zealand Cash: **Cash:** NZ$10,000 or more (or foreign equivalent), including travellers cheques, bank drafts, money orders, etc?",
+            "questionType": "yesNo",
+            "sectionHint": "Restricted items"
+          },
+          "knowsContentsOfBaggage": {
+            "type": "boolean",
+            "title": "Do you know the contents of your baggage?",
+            "questionType": "yesNo",
+            "sectionHint": "Submit declaration"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "$ref": "#/definitions/isLivingInNZ"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsLivingInNZ"
+            }
+          },
+          {
+            "if": {
+              "$ref": "#/definitions/isNotLivingInNZ"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsNotLivingInNZ"
+            }
+          },
+          {
+            "if": {
+              "$ref": "#/definitions/isNotLivingInNZAndIsNotIntendStayingInNZ"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsNotLivingInNZAndIsNotIntendStayingInNZ"
+            }
+          },
+          {
+            "if": {
+              "$ref": "#/definitions/isNotHoldsNZPassportVisa"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsNotHoldsNZPassportVisa"
+            }
+          },
+          {
+            "if": {
+              "$ref": "#/definitions/isNotHoldsNZPassportVisaAndIsNotUsingForeignPassport"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsNotHoldsNZPassportVisaAndIsNotUsingForeignPassport"
+            }
+          },
+          {
+            "if": {
+              "$ref": "#/definitions/isNotHoldsNZPassportVisaAndIsNotUsingForeignPassportAndIsNotHoldsAustralianPassport"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsNotHoldsNZPassportVisaAndIsNotUsingForeignPassportAndIsNotHoldsAustralianPassport"
+            }
+          },
+          {
+            "if": {
+              "$ref": "#/definitions/isBringingAnyFood"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsBringingAnyFood"
+            }
+          },
+          {
+            "if": {
+              "$ref": "#/definitions/isBringingOutdoorActivityItems"
+            },
+            "then": {
+              "$ref": "#/definitions/askWhenIsBringingOutdoorActivityItems"
+            }
+          }
+        ],
+        "questionSetId": "61ef11c2-b3b5-11ed-afa1-0242ac120002"
+      }''';

@@ -1,4 +1,4 @@
-import 'package:conditional_questions_simplified/question.dart';
+import 'package:conditional_questions_simplified/model/question.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 
@@ -76,7 +76,7 @@ class _TristateCheckboxState extends ConsumerState<TristateCheckbox> {
         setState(() {
           ref.read(_checkboxState.notifier).state = value;
         });
-        widget.onStateChanged!();
+        // widget.onStateChanged!();
       },
     );
   }
