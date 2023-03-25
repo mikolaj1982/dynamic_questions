@@ -1,5 +1,5 @@
-import 'package:conditional_questions_simplified/model/question.dart';
-import 'package:conditional_questions_simplified/providers/question_data_controller.dart';
+import 'package:conditional_questions_simplified/question.dart';
+import 'package:conditional_questions_simplified/question_data_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class  QuestionData {
@@ -23,11 +23,11 @@ final questionDataProvider = Provider.family<List<QuestionData>, String>((ref, q
 }, name: 'questionDataProvider');
 
 final questionDataListProvider = StateNotifierProvider<QuestionDataListNotifier, QuestionDataList>(
-      (ref) => QuestionDataListNotifier(),
+  (ref) => QuestionDataListNotifier(),
   name: 'questionDataList',
 );
 
 final nestedQuestionsProvider = StateNotifierProvider<AddQuestionsNotifier, List<Question>>(
-      (ref) => AddQuestionsNotifier(),
+  (ref) => AddQuestionsNotifier(),
   name: 'nestedQuestionsProvider',
 );

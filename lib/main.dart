@@ -1,17 +1,27 @@
 import 'dart:convert';
-import 'dart:math';
-
-import 'package:conditional_questions_simplified/model/question.dart';
-import 'package:conditional_questions_simplified/providers/question_data.dart';
+import 'package:conditional_questions_simplified/question.dart';
+import 'package:conditional_questions_simplified/question_data.dart';
 import 'package:conditional_questions_simplified/question_widget.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
-import 'checkbox.dart';
-import 'constants/schema_json_string.dart';
 import 'package:json_schema3/json_schema3.dart';
-import 'main.dart';
+import 'package:flutter/material.dart';
+import 'checkbox_form_field.dart';
+import 'constants.dart';
 
-final container = ProviderContainer();
+class CustomProviderObserver extends ProviderObserver {
+  @override
+  void didUpdateProvider(ProviderBase provider, Object? previousValue, Object? newValue, ProviderContainer container) {
+//     print('''
+// Provider: ${provider.name ?? provider.runtimeType},
+// Old Value: $newValue
+// New Value: $previousValue,
+// =======================
+// ''');
+    super.didUpdateProvider(provider, previousValue, newValue, container);
+  }
+}
+
+final container = ProviderContainer(observers: [CustomProviderObserver()]);
 
 void main() {
   runApp(UncontrolledProviderScope(
@@ -47,12 +57,86 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 0), () {
+    Future.delayed(Duration.zero, () {
       debugPrint('analyzing data');
       final schema = jsonDecode(schemaRawString) as Map<String, dynamic>;
       final List<QuestionData> questionData = _buildQuestions(schema);
       ref.read(questionDataListProvider.notifier).updateData(questionData);
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home Page'),
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ..._buildQuestionWidgets(ref),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  _buildQuestionWidgets(ref) {
+    final questions = [];
+    final schema = jsonDecode(schemaRawString) as Map<String, dynamic>;
+    for (String question in schema['required']) {
+      final q = _getQuestion(question);
+      questions.add(q);
+    }
+
+    var listOfWidgets = [];
+    for (final question in questions) {
+      /// add conditional logic to check the type of the question
+      if (_checkIfCheckbox(question)) {
+        listOfWidgets.add(QuestionWidget(
+          key: ValueKey(question.name),
+          question: question,
+          widgetToRender: TristateCheckbox(
+            // key: ValueKey(question.name),
+            question: question,
+            onStateChanged: (bool) {},
+          ),
+        ));
+      } else {
+        listOfWidgets.add(QuestionWidget(
+          key: ValueKey(question.name),
+          widgetToRender: Flexible(
+            child: TextFormField(
+              // key: ValueKey(question.name),
+              decoration: InputDecoration(
+                labelText: question.title,
+              ),
+              onChanged: (value) {
+                print('text field value changed to $value');
+              },
+            ),
+          ),
+          question: question,
+        ));
+      }
+    }
+
+    // int startIndex = 10; // Start from index 10 (0-based)
+    // int itemCount = 1; // Take 5 items
+    // return listOfWidgets.skip(startIndex).take(itemCount);
+    return listOfWidgets;
+  }
+
+  bool _checkIfCheckbox(Question question) {
+    switch (question.questionType) {
+      case 'yesNo':
+        return true;
+      default:
+        return false;
+    }
   }
 
   Question _getQuestion(String name) {
@@ -70,43 +154,26 @@ class _HomePageState extends ConsumerState<HomePage> {
     return q;
   }
 
-  bool checkIfCheckbox(Question question) {
-    switch (question.questionType) {
-      case 'yesNo':
-        return true;
-      default:
-        return false;
-    }
-  }
-
   List<QuestionData> _buildQuestions(Map<String, dynamic> schema) {
     final List<QuestionData> questionData = [];
     final Map<dynamic, dynamic> questionsMap = {};
-
     final allOf = schema['allOf'] as List<dynamic>?;
     if (allOf == null) {
       return [];
     }
 
+    final jsonSchema = JsonSchema.create(schemaRawString);
+    final definitions = jsonSchema.schemaMap!['definitions'] as Map<String, dynamic>?;
     for (final item in allOf) {
       final condition = item['if'] as Map<String, dynamic>?;
       final then = item['then'] as Map<String, dynamic>?;
       if (condition != null && then != null) {
         final String property = condition[r'$ref']?.split('/')?.last;
-        final jsonSchema = JsonSchema.create(schemaRawString);
-        Map<String, dynamic>? conditionToMeet;
-        for (var key in jsonSchema.schemaMap!.keys) {
-          if (key == 'definitions') {
-            conditionToMeet = jsonSchema.schemaMap![key][property];
-          }
-        }
-
+        Map<String, dynamic>? conditionToMeet = definitions?[property];
         final Map<String, dynamic>? reqProperties =
             _getRequiredDefinition(jsonSchema, 'askWhen${capitalize(property)}');
         if (reqProperties != null) {
-          List<Question> conditionalQuestions = [
-            ...reqProperties['required'].map((property) => _getQuestionBasedOnPropertyFromSchema(jsonSchema, property))
-          ];
+          List<Question> conditionalQuestions = _getConditionalQuestions(reqProperties, jsonSchema);
           questionsMap.putIfAbsent(property, () => conditionalQuestions);
           questionData.add(QuestionData(
             condition: conditionToMeet,
@@ -120,6 +187,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     return questionData;
+  }
+
+  List<Question> _getConditionalQuestions(Map<String, dynamic> reqProperties, JsonSchema jsonSchema) {
+    List<Question> conditionalQuestions = [];
+    for (String property in reqProperties['required']) {
+      Question? question = _getQuestionBasedOnPropertyFromSchema(jsonSchema, property);
+      if (question != null) {
+        conditionalQuestions.add(question);
+      }
+    }
+    return conditionalQuestions;
   }
 
   Question? _getQuestionBasedOnPropertyFromSchema(JsonSchema schema, String property) {
@@ -156,113 +234,5 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     return input[0].toUpperCase() + input.substring(1);
-  }
-
-  int generateRandomNumber(int min, int max) {
-    final random = Random();
-    return min + random.nextInt(max - min);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home Page'),
-      ),
-      body: SingleChildScrollView(
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ..._buildQuestionWidgets(ref),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  _buildQuestionWidgets(ref) {
-    final questions = [];
-
-    // final questions = [
-    //   Question(
-    //     name: 'question1',
-    //     type: 'checkbox',
-    //     title: 'Question 1',
-    //     sectionHint: 'Section 1',
-    //     questionType: 'yesNo',
-    //   ),
-    //   Question(
-    //     name: 'question2',
-    //     type: 'checkbox',
-    //     title: 'Question 2',
-    //     sectionHint: 'Section 1',
-    //     questionType: 'yesNo',
-    //   ),
-    //   Question(
-    //     name: 'question3',
-    //     type: 'checkbox',
-    //     title: 'Question 3',
-    //     sectionHint: 'Section 1',
-    //     questionType: 'yesNo',
-    //   ),
-    //   Question(
-    //     name: 'question4',
-    //     type: 'checkbox',
-    //     title: 'Question 4',
-    //     sectionHint: 'Section 1',
-    //     questionType: 'yesNo',
-    //   ),
-    //   Question(
-    //     name: 'question5',
-    //     type: 'checkbox',
-    //     title: 'Question 5',
-    //     sectionHint: 'Section 1',
-    //     questionType: 'yesNo',
-    //   ),
-    // ];
-
-    final schema = jsonDecode(schemaRawString) as Map<String, dynamic>;
-    for (String question in schema['required']) {
-      final q = _getQuestion(question);
-      questions.add(q);
-    }
-
-    var listOfWidgets = [];
-    for (final question in questions) {
-      /// add conditional logic to check the type of the question
-      if (checkIfCheckbox(question)) {
-        listOfWidgets.add(QuestionWidget(
-          key: ValueKey(question.name + generateRandomNumber(1000, 99990).toString()),
-          question: question,
-          widgetToRender: TristateCheckbox(
-            // key: ValueKey(question.name),
-            onStateChanged: () => () {
-              print('onStateChanged');
-            },
-            question: question,
-          ),
-        ));
-      } else {
-        listOfWidgets.add(QuestionWidget(
-          key: ValueKey(question.name + generateRandomNumber(1000, 99990).toString()),
-          widgetToRender: Flexible(
-            child: TextFormField(
-              // key: ValueKey(question.name),
-              decoration: InputDecoration(
-                labelText: question.title,
-              ),
-              onChanged: (value) {
-                print('text field value changed to $value');
-              },
-            ),
-          ),
-          question: question,
-        ));
-      }
-    }
-
-    return listOfWidgets;
   }
 }

@@ -23,28 +23,28 @@ class Question {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is Question &&
-              runtimeType == other.runtimeType &&
-              name == other.name &&
-              type == other.type &&
-              title == other.title &&
-              questionType == other.questionType &&
-              sectionHint == other.sectionHint &&
-              possibleValues == other.possibleValues &&
-              conditionalQuestions == other.conditionalQuestions &&
-              response == other.response;
+      other is Question &&
+          runtimeType == other.runtimeType &&
+          name == other.name &&
+          type == other.type &&
+          title == other.title &&
+          questionType == other.questionType &&
+          sectionHint == other.sectionHint &&
+          possibleValues == other.possibleValues &&
+          conditionalQuestions == other.conditionalQuestions &&
+          response == other.response;
 
   @override
   int get hashCode => Object.hashAll([
-    name,
-    type,
-    title,
-    questionType,
-    sectionHint,
-    possibleValues,
-    conditionalQuestions,
-    response,
-  ]);
+        name,
+        type,
+        title,
+        questionType,
+        sectionHint,
+        possibleValues,
+        conditionalQuestions,
+        response,
+      ]);
 
   @override
   String toString() {

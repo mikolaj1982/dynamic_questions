@@ -1,11 +1,9 @@
-import 'package:conditional_questions_simplified/model/question.dart';
-import 'package:conditional_questions_simplified/providers/question_data.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:conditional_questions_simplified/question.dart';
+import 'package:conditional_questions_simplified/question_data.dart';
 import 'package:flutter/material.dart';
-import 'dart:math';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'checkbox.dart';
-import 'main.dart';
+import 'checkbox_form_field.dart';
 
 class QuestionWidget extends ConsumerStatefulWidget {
   QuestionWidget({
@@ -15,7 +13,7 @@ class QuestionWidget extends ConsumerStatefulWidget {
   }) : super(key: key);
 
   final Question question;
-  List<Question>? nestedQuestions = [];
+  final List<Question>? nestedQuestions = [];
   final Widget widgetToRender;
 
   @override
@@ -23,94 +21,14 @@ class QuestionWidget extends ConsumerStatefulWidget {
 }
 
 class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
-  int generateRandomNumber(int min, int max) {
-    final random = Random();
-    return min + random.nextInt(max - min);
-  }
+  static Map<String, _QuestionWidgetState> instanceMap = {};
+  DateTime _lastMethodCallTime = DateTime.fromMillisecondsSinceEpoch(0);
 
-  // void _addNestedQuestions(String parentWidgetName) {
-  //   print('addNestedQuestions: $parentWidgetName');
-  //   int randomNumber = generateRandomNumber(1000, 9999);
-  //   final newQuestion = Question(
-  //     name: 'question$randomNumber',
-  //     type: 'checkbox',
-  //     title: 'Question 6',
-  //     sectionHint: 'Section 1',
-  //     questionType: 'yesNo',
-  //   );
-  //   setState(() {
-  //     widget.nestedQuestions!.add(newQuestion);
-  //   });
-  // }
-
-  void _clearNestedQuestions() {
-    ref.read(nestedQuestionsProvider.notifier).clearQuestions();
-    setState(() {
-      widget.nestedQuestions?.clear();
-      widget.nestedQuestions = null;
-      widget.nestedQuestions = [];
-    });
-  }
-
-  void _addNestedQuestions(String parentWidgetName) {
-    final List<QuestionData> questionDataList = ref.watch(questionDataProvider(parentWidgetName));
-    setState(() {
-      _clearNestedQuestions();
-
-      for (QuestionData questionData in questionDataList) {
-        Map<String, dynamic> conditionMap = questionData.condition['properties'];
-        bool allConditionsMet = true;
-        List<Question> questionsToAdd = [];
-        for (var entry in conditionMap.entries) {
-          // var value = entry.value;
-          var key = entry.key;
-          // print('$key: $value');
-          // print('Number of conditions: ${conditionMap.entries.length}');
-
-          final AutoDisposeStateProvider<bool>? provider = _getProviderByName(key);
-          // final StateProvider<bool>? provider = _getProviderByName(key);
-
-          if (provider == null) {
-            allConditionsMet = false;
-          } else {
-            var boolToMatch = conditionMap[key]["const"];
-            final actualValue = ref.read(provider.notifier).state;
-            if (boolToMatch == actualValue) {
-              // print('condition matched on property $key with value $actualValue');
-              List<Question> questions = questionData.questions;
-              for (int i = 0; i < questions.length; i++) {
-                Question question = questions[i];
-                questionsToAdd.add(question);
-              }
-              // break;
-            } else {
-              allConditionsMet = false;
-              // print('condition NOT matched on property $key with value $actualValue');
-            }
-          }
-        }
-
-        if (allConditionsMet) {
-          // print('All conditions are true.');
-          _clearNestedQuestions();
-          ref.read(nestedQuestionsProvider.notifier).addQuestions(questionsToAdd);
-          final questions = ref.read(nestedQuestionsProvider.notifier).questions;
-          widget.nestedQuestions?.addAll(questions);
-        }
-
-        // print('=================================================================');
-      }
-    });
-
-    print('=================================================================');
-  }
-
-  dynamic _getProviderByName(String name) {
-    // print('looking for provider with name: $name');
+  dynamic _getProviderByName(BuildContext context, String name) {
+    final container = ProviderScope.containerOf(context);
     final providerElements = container.getAllProviderElements();
     for (final ProviderElementBase<Object?> element in providerElements) {
       if (element.provider.name == name) {
-        // print('found provider with name: $name');
         return element.provider;
       }
     }
@@ -118,7 +36,7 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
     return null;
   }
 
-  bool checkIfCheckbox(Question question) {
+  bool _checkIfCheckbox(Question question) {
     switch (question.questionType) {
       case 'yesNo':
         return true;
@@ -128,89 +46,139 @@ class _QuestionWidgetState extends ConsumerState<QuestionWidget> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    // var checkboxState = _getProviderByName(widget.question.name);
-    // if (checkboxState != null) {
-    //   bool state = ref.watch(checkboxState);
-    //   if (state) {
-    //     print('QuestionWidgetState: ${checkboxState.name} checkbox is $state.');
-    //     _addNestedQuestions(widget.question.name);
-    //   }
-    // }
+  void initState() {
+    ///FIXME for first time, the state is not set yet, so we need to wait for the next frame
+    Future.delayed(Duration.zero, () {
+      setState(() {});
+    });
+    super.initState();
+  }
 
-    var checkboxState = _getProviderByName(widget.question.name);
+  void _clearNestedQuestions() {
+    ref.read(nestedQuestionsProvider.notifier).clearQuestions();
+    widget.nestedQuestions?.clear();
+  }
+
+  bool _canCallMethod() {
+    final now = DateTime.now();
+    if (now.difference(_lastMethodCallTime) >= const Duration(milliseconds: 100)) {
+      _lastMethodCallTime = now;
+      return true;
+    }
+    return false;
+  }
+
+  void _addNestedQuestionsFromRootWidget(String parentWidgetName) {
+    if (!mounted) {
+      return;
+    }
+
+    if (_canCallMethod()) {
+      final List<QuestionData> questionDataList = ref.watch(questionDataProvider(parentWidgetName));
+      if (questionDataList.isNotEmpty) {
+        setState(() {
+          _clearNestedQuestions();
+          for (QuestionData questionData in questionDataList) {
+            List<Question> questionsToAdd = _processQuestionData(questionData);
+            if (questionsToAdd.isNotEmpty) {
+              _clearNestedQuestions();
+              ref.read(nestedQuestionsProvider.notifier).addQuestions(questionsToAdd);
+              final questions = ref.read(nestedQuestionsProvider.notifier).questions;
+              widget.nestedQuestions?.addAll(questions);
+            }
+          }
+        });
+      }
+    }
+  }
+
+  List<Question> _processQuestionData(QuestionData questionData) {
+    Map<String, dynamic> conditionMap = questionData.condition['properties'];
+    bool allConditionsMet = true;
+    List<Question> questionsToAdd = [];
+
+    for (var entry in conditionMap.entries) {
+      var key = entry.key;
+      final AutoDisposeStateProvider<bool>? provider = _getProviderByName(context, key);
+      if (provider == null) {
+        allConditionsMet = false;
+      } else {
+        var boolToMatch = conditionMap[key]["const"];
+        final actualValue = ref.read(provider.notifier).state;
+        if (boolToMatch == actualValue) {
+          questionsToAdd.addAll(questionData.questions);
+        } else {
+          allConditionsMet = false;
+        }
+      }
+    }
+
+    return allConditionsMet ? questionsToAdd : [];
+  }
+
+  void _assignThis(String parentWidgetName, _QuestionWidgetState? questionWidgetState) {
+    instanceMap[parentWidgetName] = questionWidgetState!;
+  }
+
+  void _scheduleAssignThis() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _assignThis(widget.question.name, this);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var checkboxState = _getProviderByName(context, widget.question.name);
     if (checkboxState != null) {
       ref.listen(checkboxState, (_, state) {
-        print('_QuestionWidgetState: ${checkboxState.name} checkbox is $state.');
-        _addNestedQuestions(widget.question.name);
+        _addNestedQuestionsFromRootWidget(widget.question.name);
       });
     }
 
+    _scheduleAssignThis();
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 10, 10, 0),
-      child: Container(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                widget.widgetToRender,
-                (widget.widgetToRender.runtimeType == TristateCheckbox &&
-                    (widget.question.name == 'livingInNZ' ||
-                        widget.question.name == 'intendStayingInNZ' ||
-                        widget.question.name == 'holdsNZPassportVisa' ||
-                        widget.question.name == 'usingForeignPassport' ||
-                        widget.question.name == 'holdsAustralianPassport' ||
-                        widget.question.name == 'hasPrisonOrDeportationHistory' ||
-                        widget.question.name == 'bringingAnyFood' ||
-                        widget.question.name == 'bringingOutdoorActivityItems'))
-                    ? TextButton(
-                  onPressed: () {
-                    _addNestedQuestions(widget.question.name); // call the callback function
-                  },
-                  child: Text('add'),
-                )
-                    : Container(),
-              ],
-            ),
-            // Container(
-            //   color: Colors.red,
-            //   child: Text('nestedQuestions: ${widget.nestedQuestions?.length}'),
-            // ),
-            Column(
-              children: [
-                if (widget.nestedQuestions != null)
-                  ...widget.nestedQuestions!.map((Question question) {
-                    //FIXME add same code for global keys to be able to grab the right widget for nested questions
-                    if (checkIfCheckbox(question)) {
-                      return QuestionWidget(
-                        key: ValueKey(question.name + generateRandomNumber(1000, 99999).toString()),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              widget.widgetToRender,
+            ],
+          ),
+          Column(
+            children: [
+              if (widget.nestedQuestions != null)
+                ...widget.nestedQuestions!.map((Question question) {
+                  if (_checkIfCheckbox(question)) {
+                    return QuestionWidget(
+                      question: question,
+                      widgetToRender: TristateCheckbox(
+                        onStateChanged: (bool newValue) {
+                          ref.read(_getProviderByName(context, question.name).notifier).state = newValue;
+                          instanceMap[question.name]?._addNestedQuestionsFromRootWidget(question.name);
+                        },
                         question: question,
-                        widgetToRender: TristateCheckbox(
-                          onStateChanged: () =>  _addNestedQuestions(widget.question.name),
-                          question: question,
-                        ),
-                      );
-                    } else {
-                      return QuestionWidget(
-                        key: ValueKey(question.name + generateRandomNumber(1000, 99999).toString()),
-                        widgetToRender: Flexible(
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              labelText: question.title,
-                            ),
-                            onChanged: (value) {
-                              print('text field value changed to $value');
-                            },
+                      ),
+                    );
+                  } else {
+                    return QuestionWidget(
+                      widgetToRender: Flexible(
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: question.title,
                           ),
+                          onChanged: (value) {
+                            print('text field value changed to $value');
+                          },
                         ),
-                        question: question,
-                      );
-                    }
-                  }).toList(),
-              ],
-            ),
-          ],
-        ),
+                      ),
+                      question: question,
+                    );
+                  }
+                }).toList(),
+            ],
+          ),
+        ],
       ),
     );
   }

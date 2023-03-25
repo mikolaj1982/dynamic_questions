@@ -1,5 +1,5 @@
-import 'package:conditional_questions_simplified/model/question.dart';
-import 'package:conditional_questions_simplified/providers/question_data.dart';
+import 'package:conditional_questions_simplified/question.dart';
+import 'package:conditional_questions_simplified/question_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class QuestionDataList {
@@ -28,9 +28,7 @@ class AddQuestionsNotifier extends StateNotifier<List<Question>> {
   AddQuestionsNotifier() : super([]);
 
   clearQuestions() {
-    Future.delayed(Duration.zero, () {
-      state = [];
-    });
+    state = [];
   }
 
   Future<void> addQuestions(List<Question> questionsToAdd) async {
@@ -51,9 +49,7 @@ class AddQuestionsNotifier extends StateNotifier<List<Question>> {
     }
 
     // Update the state with the unique questions.
-    Future.delayed(Duration.zero, () {
-      state = [...state, ...uniqueQuestions];
-    });
+    state = [...state, ...uniqueQuestions];
   }
 
   get questions => state;
